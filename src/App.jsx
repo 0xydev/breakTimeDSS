@@ -58,10 +58,10 @@ const App = () => {
 
     if (activityDuration <= remainingTime) {
       const departureTime = new Date(cutoffTime.getTime() - activityDuration * 60000);
-      setMessage(`You must leave ${selectedActivity} by ${departureTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} to return on time.`);
+      setMessage(`You should start returning from ${selectedActivity} by ${departureTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} to return on time.`);
       setTimeInfo([
         `Time Remaining Until Class: ${Math.floor(remainingTime)} minutes`,
-        `Time Remaining to Depart: ${Math.floor(remainingTime - activityDuration)} minutes`
+        `Time to Start Returning: ${Math.floor(remainingTime - activityDuration)} minutes`
       ]);
     } else {
       setMessage(`Do not do ${selectedActivity} in this break!`);
