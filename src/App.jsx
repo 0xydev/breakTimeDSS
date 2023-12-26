@@ -17,6 +17,7 @@ const App = () => {
   const [selectedActivity, setSelectedActivity] = useState(Object.keys(activities)[0]);
   const [currentTime, setCurrentTime] = useState('');
   const [message, setMessage] = useState('');
+  const [timeInfo, setTimeInfo] = useState([]);
   const [buttonPressed, setButtonPressed] = useState(false);
   const [easterEgg, setEasterEgg] = useState('');
 
@@ -50,16 +51,21 @@ const App = () => {
     const cutoffTime = new Date(currentTimeDate);
     cutoffTime.setMinutes(15, 0, 0); // Her saat xx:15'te sınıfa dönüş
     if (currentTimeDate.getMinutes() > 15) {
-      cutoffTime.setHours(currentTimeDate.getHours() + 1); // Eğer mevcut zaman 15 dakikadan sonra ise, bir sonraki saate geç
+      cutoffTime.setHours(currentTimeDate.getHours() + 1);
     }
 
     const remainingTime = (cutoffTime - currentTimeDate) / 60000; // Dakikalara çevir
 
     if (activityDuration <= remainingTime) {
       const departureTime = new Date(cutoffTime.getTime() - activityDuration * 60000);
-      setMessage(`You can do ${selectedActivity}. Leave by ${departureTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} to return on time.`);
+      setMessage(`You must leave ${selectedActivity} by ${departureTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} to return on time.`);
+      setTimeInfo([
+        `Time Remaining Until Class: ${Math.floor(remainingTime)} minutes`,
+        `Time Remaining to Depart: ${Math.floor(remainingTime - activityDuration)} minutes`
+      ]);
     } else {
       setMessage(`Do not do ${selectedActivity} in this break!`);
+      setTimeInfo([]);
     }
   };
 
@@ -118,6 +124,11 @@ const App = () => {
               {message}
             </Typography>
           )}
+          {timeInfo.length > 0 && timeInfo.map((line, index) => (
+            <Typography key={index} variant="subtitle1" sx={{ mt: 2, color: darkTheme.palette.info.main }}>
+              {line}
+            </Typography>
+          ))}
           {easterEgg && (
             <Typography variant="subtitle1" sx={{ mt: 2, color: darkTheme.palette.info.main }}>
               {easterEgg}
