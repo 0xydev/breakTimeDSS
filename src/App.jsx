@@ -1,19 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  createTheme,
-  ThemeProvider,
-  Container,
-  Typography,
-  Card,
-  Grid,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Select,
-  TextField,
-  Button,
-  Box,
-  CssBaseline
+  createTheme, ThemeProvider, Container, Typography, Card, MenuItem, FormControl, InputLabel,
+  Select, TextField, Button, CssBaseline
 } from '@mui/material';
 
 const activities = {
@@ -26,9 +14,22 @@ const activities = {
 };
 
 const App = () => {
-  const [selectedActivity, setSelectedActivity] = useState('');
+  const [selectedActivity, setSelectedActivity] = useState(Object.keys(activities)[0]);
   const [currentTime, setCurrentTime] = useState('');
   const [message, setMessage] = useState('');
+  const [buttonPressed, setButtonPressed] = useState(false);
+  const [easterEgg, setEasterEgg] = useState('');
+
+  useEffect(() => {
+    let timer;
+    if (buttonPressed) {
+      timer = setTimeout(() => {
+        setEasterEgg('Tarık - Furkan - Yunus - Rümeysa');
+        setButtonPressed(false);
+      }, 3000);
+    }
+    return () => clearTimeout(timer);
+  }, [buttonPressed]);
 
   const handleActivityChange = (event) => {
     setSelectedActivity(event.target.value);
@@ -39,21 +40,31 @@ const App = () => {
   };
 
   const calculateFeasibility = () => {
+    if (!currentTime) {
+      setMessage('Please enter the current time.');
+      return;
+    }
+
     const activityDuration = activities[selectedActivity];
     const currentTimeDate = new Date(`01/01/2000 ${currentTime}`);
-    const nextCutoffTime = new Date(currentTimeDate);
-    nextCutoffTime.setMinutes((Math.floor(currentTimeDate.getMinutes() / 15) + 1) * 15, 0, 0);
-    if (currentTimeDate.getMinutes() > 45) {
-      nextCutoffTime.setHours(currentTimeDate.getHours() + 1);
+    const cutoffTime = new Date(currentTimeDate);
+    cutoffTime.setMinutes(15, 0, 0); // Her saat xx:15'te sınıfa dönüş
+    if (currentTimeDate.getMinutes() > 15) {
+      cutoffTime.setHours(currentTimeDate.getHours() + 1); // Eğer mevcut zaman 15 dakikadan sonra ise, bir sonraki saate geç
     }
-    const remainingTime = (nextCutoffTime - currentTimeDate) / 60000; // Convert to minutes
+
+    const remainingTime = (cutoffTime - currentTimeDate) / 60000; // Dakikalara çevir
 
     if (activityDuration <= remainingTime) {
-      const departureTime = new Date(nextCutoffTime.getTime() - activityDuration * 60000);
+      const departureTime = new Date(cutoffTime.getTime() - activityDuration * 60000);
       setMessage(`You can do ${selectedActivity}. Leave by ${departureTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} to return on time.`);
     } else {
       setMessage(`Do not do ${selectedActivity} in this break!`);
     }
+  };
+
+  const handleButtonPress = () => {
+    setButtonPressed(true);
   };
 
   const darkTheme = createTheme({
@@ -61,6 +72,7 @@ const App = () => {
       mode: 'dark',
       success: { main: '#4caf50' },
       error: { main: '#f44336' },
+      info: { main: '#2196f3' }
     },
   });
 
@@ -89,12 +101,26 @@ const App = () => {
             margin="normal"
             InputLabelProps={{ shrink: true }}
           />
-          <Button variant="contained" color="primary" fullWidth onClick={calculateFeasibility}>
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            onClick={calculateFeasibility}
+            onMouseDown={handleButtonPress}
+            onMouseUp={() => setButtonPressed(false)}
+            onTouchStart={handleButtonPress}
+            onTouchEnd={() => setButtonPressed(false)}
+          >
             Check Feasibility
           </Button>
           {message && (
-            <Typography variant="subtitle1" sx={{ mt: 2, color: message.includes('not') ? darkTheme.palette.error.main : darkTheme.palette.success.main }}>
+            <Typography variant="subtitle1" sx={{ mt: 2, color: message.includes('not') || message.includes('Please enter') ? darkTheme.palette.error.main : darkTheme.palette.success.main }}>
               {message}
+            </Typography>
+          )}
+          {easterEgg && (
+            <Typography variant="subtitle1" sx={{ mt: 2, color: darkTheme.palette.info.main }}>
+              {easterEgg}
             </Typography>
           )}
         </Card>
